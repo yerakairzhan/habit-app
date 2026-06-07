@@ -33,3 +33,6 @@ postgres_data/
 
 # Generated proto stubs (run: make proto)
 gen/**/*.go
+
+# frontend
+frontend/node_modules
