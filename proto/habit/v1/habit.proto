@@ -1,0 +1,120 @@
+syntax = "proto3";
+
+package habit.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/yourorg/habit-tracker/gen/habit/v1;habitv1";
+
+// ─── Habit Service ───────────────────────────────────────────────────────────
+
+service HabitService {
+  rpc CreateHabit(CreateHabitRequest)   returns (CreateHabitResponse);
+  rpc UpdateHabit(UpdateHabitRequest)   returns (UpdateHabitResponse);
+  rpc DeleteHabit(DeleteHabitRequest)   returns (DeleteHabitResponse);
+  rpc GetHabit(GetHabitRequest)         returns (GetHabitResponse);
+  rpc ListHabits(ListHabitsRequest)     returns (ListHabitsResponse);
+  rpc GetTodaysHabits(GetTodaysHabitsRequest) returns (GetTodaysHabitsResponse);
+}
+
+// ─── Schedule ────────────────────────────────────────────────────────────────
+
+enum ScheduleType {
+  SCHEDULE_TYPE_UNSPECIFIED    = 0;
+  SCHEDULE_TYPE_DAILY          = 1;
+  SCHEDULE_TYPE_EVERY_OTHER_DAY = 2;
+  SCHEDULE_TYPE_WEEKDAYS       = 3;
+}
+
+// Weekday mirrors time.Weekday: 0=Sunday … 6=Saturday
+enum Weekday {
+  WEEKDAY_UNSPECIFIED = 0;
+  WEEKDAY_SUNDAY      = 1;
+  WEEKDAY_MONDAY      = 2;
+  WEEKDAY_TUESDAY     = 3;
+  WEEKDAY_WEDNESDAY   = 4;
+  WEEKDAY_THURSDAY    = 5;
+  WEEKDAY_FRIDAY      = 6;
+  WEEKDAY_SATURDAY    = 7;
+}
+
+// ─── Core Habit message ──────────────────────────────────────────────────────
+
+message Habit {
+  string    id             = 1;
+  string    user_id        = 2;
+  string    title          = 3;
+  string    color          = 4;  // hex color e.g. "#FF5733"
+  int32     target_per_day = 5;
+  ScheduleType schedule_type = 6;
+  repeated Weekday weekdays  = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+// ─── Today's Habit (with progress) ───────────────────────────────────────────
+
+message TodayHabit {
+  Habit   habit     = 1;
+  int32   progress  = 2;
+  int32   target    = 3;
+  bool    completed = 4;
+}
+
+// ─── CRUD Requests / Responses ───────────────────────────────────────────────
+
+message CreateHabitRequest {
+  string       title          = 1;
+  string       color          = 2;
+  int32        target_per_day = 3;
+  ScheduleType schedule_type  = 4;
+  repeated Weekday weekdays   = 5;
+}
+
+message CreateHabitResponse {
+  Habit habit = 1;
+}
+
+message UpdateHabitRequest {
+  string       id             = 1;
+  string       title          = 2;
+  string       color          = 3;
+  int32        target_per_day = 4;
+  ScheduleType schedule_type  = 5;
+  repeated Weekday weekdays   = 6;
+}
+
+message UpdateHabitResponse {
+  Habit habit = 1;
+}
+
+message DeleteHabitRequest {
+  string id = 1;
+}
+
+message DeleteHabitResponse {}
+
+message GetHabitRequest {
+  string id = 1;
+}
+
+message GetHabitResponse {
+  Habit habit = 1;
+}
+
+message ListHabitsRequest {
+  // Pagination (page-based, simple)
+  int32 page      = 1; // 1-indexed
+  int32 page_size = 2; // default 50, max 200
+}
+
+message ListHabitsResponse {
+  repeated Habit habits = 1;
+  int32          total  = 2;
+}
+
+message GetTodaysHabitsRequest {}
+
+message GetTodaysHabitsResponse {
+  repeated TodayHabit habits = 1;
+}

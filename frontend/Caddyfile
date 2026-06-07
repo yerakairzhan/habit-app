@@ -1,0 +1,13 @@
+{$DOMAIN_NAME} {
+    # 1. Serve frontend production static files
+    root * /var/www/html
+    file_server {
+        try_files {path} /index.html
+    }
+
+    # 2. Compress assets text transmissions
+    encode gzip zstd
+
+    # 3. Route Connect RPC API endpoints down to the Go container
+    reverse_proxy /habit.v1.* server:50051
+}

@@ -1,0 +1,35 @@
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Generated proto stubs (regenerate with make proto)
+gen/
+
+# Test artifacts
+*.test
+coverage.out
+coverage.html
+
+# Environment secrets
+.env
+*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker volumes (if bind-mounted)
+postgres_data/
+
+# Generated proto stubs (run: make proto)
+gen/**/*.go

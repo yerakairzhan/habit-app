@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package habit.v1;
+
+option go_package = "github.com/yourorg/habit-tracker/gen/habit/v1;habitv1";
+
+// ─── Settings Service ────────────────────────────────────────────────────────
+
+service SettingsService {
+  rpc GetSettings(GetSettingsRequest)       returns (GetSettingsResponse);
+  rpc UpdateSettings(UpdateSettingsRequest) returns (UpdateSettingsResponse);
+}
+
+message Settings {
+  string language              = 1; // BCP-47, e.g. "en", "ru", "kk"
+  bool   notifications_enabled = 2;
+  bool   show_dates            = 3;
+}
+
+message GetSettingsRequest {}
+
+message GetSettingsResponse {
+  Settings settings = 1;
+}
+
+message UpdateSettingsRequest {
+  string language              = 1;
+  bool   notifications_enabled = 2;
+  bool   show_dates            = 3;
+}
+
+message UpdateSettingsResponse {
+  Settings settings = 1;
+}
+
+// ─── Stats Service ───────────────────────────────────────────────────────────
+
+service StatsService {
+  rpc GetStats(GetStatsRequest) returns (GetStatsResponse);
+}
+
+message GetStatsRequest {
+  // Optional: filter stats for a specific habit.
+  // If empty, returns aggregate stats for the user.
+  string habit_id = 1;
+}
+
+message GetStatsResponse {
+  int32 current_streak       = 1;
+  int32 best_streak          = 2;
+  int32 tracked_habits_count = 3;
+  // Completion rate in the last 30 days (0.0 – 1.0)
+  float completion_rate_30d  = 4;
+}

@@ -1,0 +1,69 @@
+version: "3.9"
+
+services:
+  # ─── PostgreSQL ─────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: habit_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${HABIT_DATABASE_NAME:-habitdb}
+      POSTGRES_USER:     ${HABIT_DATABASE_USER:-habit}
+      POSTGRES_PASSWORD: ${HABIT_DATABASE_PASSWORD:-habit_secret}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${HABIT_DATABASE_USER:-habit} -d ${HABIT_DATABASE_NAME:-habitdb}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ─── Backend (Connect HTTP server) ───────────────────────────────────────────
+  # The Go server speaks the Connect protocol over plain HTTP/1.1 + h2c HTTP/2.
+  # Browsers connect directly — no Envoy/grpc-web proxy required.
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: habit_server
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      HABIT_SERVER_ENV:              development
+      HABIT_SERVER_PORT:             50051
+      HABIT_DATABASE_HOST:           postgres
+      HABIT_DATABASE_PORT:           5432
+      HABIT_DATABASE_NAME:           ${HABIT_DATABASE_NAME:-habitdb}
+      HABIT_DATABASE_USER:           ${HABIT_DATABASE_USER:-habit}
+      HABIT_DATABASE_PASSWORD:       ${HABIT_DATABASE_PASSWORD:-habit_secret}
+      HABIT_DATABASE_SSL_MODE:       disable
+      HABIT_JWT_SECRET:              ${HABIT_JWT_SECRET:-change-me-in-production-min-32-chars!!}
+      CORS_ALLOWED_ORIGINS:          ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
+    ports:
+      - "50051:50051"
+    volumes:
+      - ./migrations:/app/migrations:ro
+
+  # ─── Frontend (Vite dev server) ───────────────────────────────────────────────
+  frontend:
+    image: node:22-alpine
+    container_name: habit_frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    environment:
+      VITE_API_URL: "" #5173
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    depends_on:
+      - server
+
+volumes:
+  postgres_data:
+  frontend_node_modules:

@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package habit.v1;
+
+option go_package = "github.com/yourorg/habit-tracker/gen/habit/v1;habitv1";
+
+// ─── Progress Service ────────────────────────────────────────────────────────
+
+service ProgressService {
+  rpc IncrementProgress(IncrementProgressRequest) returns (ProgressResponse);
+  rpc DecrementProgress(DecrementProgressRequest) returns (ProgressResponse);
+  rpc ResetProgress(ResetProgressRequest)         returns (ProgressResponse);
+  rpc GetProgress(GetProgressRequest)             returns (ProgressResponse);
+}
+
+message IncrementProgressRequest {
+  string habit_id = 1;
+  // date in YYYY-MM-DD; defaults to today (server time) when empty
+  string date = 2;
+}
+
+message DecrementProgressRequest {
+  string habit_id = 1;
+  string date     = 2;
+}
+
+message ResetProgressRequest {
+  string habit_id = 1;
+  string date     = 2;
+}
+
+message GetProgressRequest {
+  string habit_id = 1;
+  string date     = 2;
+}
+
+message ProgressResponse {
+  string habit_id  = 1;
+  string date      = 2;
+  int32  progress  = 3;
+  int32  target    = 4;
+  bool   completed = 5;
+}
